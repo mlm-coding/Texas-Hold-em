@@ -116,10 +116,8 @@ hand* deal_hole(node* head, int players) {
 }
 
 //*Begin a round of betting
-//!Call command irrelevant unti CPU AI in place
-//!Raise command not working correctly
-//!Fold currently ends the game, but needs to eventually finish simulation
-int bet_chips(hand** player_hands, int** player_chips, int players) {
+//!Most is irrelevant until CPU AI is in place
+int bet_chips(hand** player_hands, int* player_chips, int players) {
     char* command = malloc(sizeof(char) * 6);
     int betting = 0, raise, pot_addition = 0;
     while(betting != 1) {
@@ -136,18 +134,18 @@ int bet_chips(hand** player_hands, int** player_chips, int players) {
         else if(strncmp(command, "raise", 5) == 0) {
             printf("How much would you like to raise?\n");
             scanf("%d", &raise);
-            if(*player_chips[0] >= raise) {
+            if(player_chips[0] >= raise) {
                 for(int i = 0; i < players; i++) {
-                    if(*player_chips[i] < raise) {
-                        printf("Player %d only has %d chips, so they are by default, all in.\n", i, *player_chips[i]);
-                        pot_addition += *player_chips[i];
-                        *player_chips[i] = 0;
+                    if(player_chips[i] < raise) {
+                        printf("Player %d only has %d chips, so they are by default, all in.\n", i, player_chips[i]);
+                        pot_addition += player_chips[i];
+                        player_chips[i] = 0;
                         continue;
                     }
-                    *player_chips[i] -= raise;
+                    player_chips[i] -= raise;
                     pot_addition += raise;
-                    printf("Player %d is at %d chips.\n", i, *player_chips[i]);
-                    if(*player_chips[i] == 0) {
+                    printf("Player %d is at %d chips.\n", i, player_chips[i]);
+                    if(player_chips[i] == 0) {
                         printf("Player %d is all in.\n", i);
                     }
                 }
@@ -168,6 +166,7 @@ int bet_chips(hand** player_hands, int** player_chips, int players) {
             continue;
         }
     }
+    return 0;
 }
 
 //*Test the deck during dev
@@ -182,18 +181,22 @@ void print_deck(node* head) {
     printf("Total cards in deck: %d\n", count);
 }
 
+//*Test the chip array during dev
+void print_chips(int* chip_list, int players) {
+    for(int i = 0; i < players; i++) {
+        printf("Player %d has %d chips.\n", i, chip_list[i]);
+    }
+}
+
 //Main program
-//!Change declaration for hands, chips
 int main(void) {
     //Seed RNG and create variables including deck
     srand(time(NULL));
     int players, starting_chips, pot = 0;
     node* head = malloc(sizeof(node));
     initialize_deck(head);
-    print_deck(head);
     //Shuffle
     shuffle_deck(head);
-    print_deck(head);
     //# of players and chips
     printf("Enter the amount of players desired(including yourself): ");
     scanf("%d", &players);
@@ -204,6 +207,7 @@ int main(void) {
     for(int i = 0; i < players; i++) {
         player_chips[i] = starting_chips;
     }
+    print_chips(player_chips, players);
     //Deal cards to each player
     hand* player_hands = deal_hole(head, players);
     adjust_deck(&head, (players*2));
@@ -213,7 +217,7 @@ int main(void) {
         printf("Player %d, c1: %d %d, c2: %d %d\n", i, player_hands[i].c1.value, player_hands[i].c1.suit, player_hands[i].c2.value, player_hands[i].c2.suit);
     }
     ////
-    pot += bet_chips(&player_hands, &player_chips, players);
+    pot += bet_chips(&player_hands, player_chips, players);
     printf("The pot is currently at %d chips.\n", pot);
     return 0;
 }
